@@ -1,0 +1,10 @@
+interactive_data_explorer/
+├── src/
+│   ├── __init__.py
+│   ├── data_loader.py
+│   ├── data_manipulator.py
+│   └── data_visualizer.py
+├── app.py
+├── requirements.txt
+├── LICENSE
+└── README.md

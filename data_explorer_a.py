@@ -1,7 +1,6 @@
 # Import necessary libraries
 import streamlit as st
 import pandas as pd
-import sqlalchemy
 import plotly.express as px  # For data visualization
 
 # Streamlit page configuration
@@ -12,7 +11,7 @@ st.title('Interactive Data Explorer')
 
 # Sidebar for data source selection
 st.sidebar.header('Data Source Selection')
-source_type = st.sidebar.selectbox('Select the data source type:', ['CSV/Excel', 'SQL Database'])
+source_type = st.sidebar.selectbox('Select the data source type:', ['CSV/Excel'])
 
 # Initialize an empty DataFrame
 df = pd.DataFrame()
@@ -26,15 +25,6 @@ if source_type == 'CSV/Excel':
         elif uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file)
         st.write(df)  # Display the dataframe in the Streamlit app
-
-elif source_type == 'SQL Database':
-    st.sidebar.subheader('Database Settings')
-    db_connection_string = st.sidebar.text_input('Database connection string:')
-    table_name = st.sidebar.text_input('Table name:')
-    if st.sidebar.button('Connect and Load'):
-        engine = sqlalchemy.create_engine(db_connection_string)
-        df = pd.read_sql_table(table_name, engine)
-        st.write(df)
 
 # Tabs for Data Manipulation and Data Visualization
 tab1, tab2 = st.tabs(["Data Manipulation", "Data Visualization"])
@@ -67,7 +57,6 @@ with tab1:
 
         # Column Transformations
         st.subheader('Column Transformations')
-        # Column renaming
         old_col_name = st.selectbox('Select a column to rename:', [''] + list(df.columns))
         new_col_name = st.text_input('New column name:', '')
         if old_col_name and new_col_name:
@@ -176,4 +165,3 @@ with tab2:
                     color_value = None
                 fig = px.box(df_filtered_vis, y=y_value, color=color_value)
                 st.plotly_chart(fig)
-

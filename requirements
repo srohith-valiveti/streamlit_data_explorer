@@ -1,5 +1,4 @@
-streamlit
-pandas
-matplotlib
-openpyxl
-xlrd
+streamlit==latest
+pandas==latest
+sqlalchemy==latest
+plotly==latest

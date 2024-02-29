@@ -1,7 +1,7 @@
 # Import necessary libraries
 import streamlit as st
 import pandas as pd
-import plotly.express as px  # For data visualization
+import matplotlib.pyplot as plt  # Use Matplotlib for data visualization
 
 # Streamlit page configuration
 st.set_page_config(page_title="Interactive Data Explorer", layout="wide")
@@ -106,10 +106,10 @@ with tab2:
         plot_type = st.selectbox('Select the type of plot', plot_types)
 
         # Additional settings based on plot type
-        if plot_type and not df.empty:
+        if plot_type:
             st.subheader('Plot Settings')
 
-            # Filtering options
+            # Data Filtering for Visualization
             st.subheader('Data Filtering for Visualization')
             filter_column_vis = st.selectbox('Select column to filter by (for visualization):', ['None'] + list(df.columns))
             if filter_column_vis != 'None':
@@ -119,49 +119,46 @@ with tab2:
             else:
                 df_filtered_vis = df
 
-            # Numerical slider for further data filtering based on numerical columns
-            numeric_columns = df.select_dtypes(include=['float', 'int']).columns
-            if len(numeric_columns) > 0:
-                st.subheader('Numerical Filtering for Visualization')
-                selected_numeric_column = st.selectbox('Select a numerical column for slider filtering:', ['None'] + list(numeric_columns))
-                if selected_numeric_column != 'None':
-                    min_value = float(df[selected_numeric_column].min())
-                    max_value = float(df[selected_numeric_column].max())
-                    value_range = st.slider('Select range for filtering:', min_value, max_value, (min_value, max_value), key=selected_numeric_column)
-                    df_filtered_vis = df_filtered_vis[(df_filtered_vis[selected_numeric_column] >= value_range[0]) & (df_filtered_vis[selected_numeric_column] <= value_range[1])]
-
             # Plotting based on the filtered dataframe and user choices
-            st.subheader(f'{plot_type}')
-            if plot_type == 'Bar plot' or plot_type == 'Scatter plot':
+            if plot_type == 'Bar plot':
                 x_value = st.selectbox('X-axis', options=df_filtered_vis.columns)
                 y_value = st.selectbox('Y-axis', options=df_filtered_vis.columns)
-                color_value = st.selectbox('Color', options=['None'] + list(df_filtered_vis.columns))
-                if color_value == 'None':
-                    color_value = None
+                fig, ax = plt.subplots()
+                df_filtered_vis.groupby(x_value)[y_value].sum().plot(kind='bar', ax=ax)
+                ax.set_xlabel(x_value)
+                ax.set_ylabel(y_value)
+                st.pyplot(fig)
 
-                if plot_type == 'Bar plot':
-                    fig = px.bar(df_filtered_vis, x=x_value, y=y_value, color=color_value)
-                else:  # Scatter plot
-                    fig = px.scatter(df_filtered_vis, x=x_value, y=y_value, color=color_value)
-
-                st.plotly_chart(fig)
+            elif plot_type == 'Scatter plot':
+                x_value = st.selectbox('X-axis', options=df_filtered_vis.columns)
+                y_value = st.selectbox('Y-axis', options=df_filtered_vis.columns)
+                fig, ax = plt.subplots()
+                ax.scatter(df_filtered_vis[x_value], df_filtered_vis[y_value])
+                ax.set_xlabel(x_value)
+                ax.set_ylabel(y_value)
+                st.pyplot(fig)
 
             elif plot_type == 'Histogram':
                 x_value = st.selectbox('Variable for histogram:', options=df_filtered_vis.columns)
-                fig = px.histogram(df_filtered_vis, x=x_value)
-                st.plotly_chart(fig)
+                fig, ax = plt.subplots()
+                ax.hist(df_filtered_vis[x_value], bins='auto')  # 'auto' lets Matplotlib decide the number of bins
+                ax.set_xlabel(x_value)
+                ax.set_ylabel('Frequency')
+                st.pyplot(fig)
 
             elif plot_type == 'Line chart':
                 x_value = st.selectbox('X-axis for line chart:', options=df_filtered_vis.columns)
-                y_value = st.multiselect('Y-axis (can select multiple):', options=df_filtered_vis.columns)
-                if y_value:
-                    fig = px.line(df_filtered_vis, x=x_value, y=y_value)
-                    st.plotly_chart(fig)
+                y_values = st.multiselect('Y-axis (can select multiple):', options=df_filtered_vis.columns)
+                fig, ax = plt.subplots()
+                for y_value in y_values:
+                    ax.plot(df_filtered_vis[x_value], df_filtered_vis[y_value], label=y_value)
+                ax.set_xlabel(x_value)
+                ax.legend()
+                st.pyplot(fig)
 
             elif plot_type == 'Box plot':
                 y_value = st.selectbox('Variable for box plot:', options=df_filtered_vis.columns)
-                color_value = st.selectbox('Color (optional):', options=['None'] + list(df_filtered_vis.columns))
-                if color_value == 'None':
-                    color_value = None
-                fig = px.box(df_filtered_vis, y=y_value, color=color_value)
-                st.plotly_chart(fig)
+                fig, ax = plt.subplots()
+                ax.boxplot(df_filtered_vis[y_value].dropna(), vert=False)  # 'vert=False' makes the box plot horizontal
+                ax.set_xlabel(y_value)
+                st.pyplot(fig)
